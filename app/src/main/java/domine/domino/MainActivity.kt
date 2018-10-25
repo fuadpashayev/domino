@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
     val BLUETOOTH_ENABLE_REQUEST = 1
+    val BLUETOOTH_DISCOVER_REQUEST = 2
     @SuppressLint("AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,42 +48,25 @@ class MainActivity : AppCompatActivity() {
             bluetoothButton.setOnClickListener {
 
                 if(bluetooth.isEnabled){
-                    //Toast.makeText(this,"bluetooth yanilidir artiq",Toast.LENGTH_SHORT).show()
+
                     val intent = Intent()
                     intent.setAction(Intent.ACTION_SEND)
                     intent.type = "text/plain"
-                    intent.putExtra(Intent.EXTRA_STREAM,"salamlar")
+                    intent.putExtra(Intent.EXTRA_STREAM, "salamlar")
                     startActivity(intent)
-
-
-                    val pm = getPackageManager()
-                    val appsList = pm.queryIntentActivities(intent, 0)
-                    if (appsList.size > 0){
-                        var packageName:String? = null
-                        var className:String? = null
-                        var found = false
-                        for (info in appsList)
-                        {
-                            packageName = info.activityInfo.packageName
-                            if (packageName == "com.android.bluetooth")
-                            {
-                                className = info.activityInfo.name
-                                found = true
-                                break
-                            }
-                        }
-
-
-                        if (!found)
-                        {
-                            Toast.makeText(this, "bluetooth not found in list",
-                                    Toast.LENGTH_SHORT).show()
-                            // exit
-                        }else{
-                            intent.setClassName(packageName, className)
-                            startActivity(intent)
-                        }
+                    val devices = bluetooth.bondedDevices
+                    val deviceNames = ArrayList<String>()
+                    for(device in devices){
+                        //Log.d("-----------devices", "${device.name} : ${device.address}")
+                        deviceNames.add(device.name)
                     }
+
+                    bList.adapter = bluetoothAdapter(deviceNames,this,main,bList)
+                    main.visibility = View.GONE
+                    bList.visibility = View.VISIBLE
+
+
+
                 }else {
                     val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                     startActivityForResult(intent, BLUETOOTH_ENABLE_REQUEST)
